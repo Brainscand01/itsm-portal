@@ -42,8 +42,8 @@ const Bdg = ({ label, bg, fg }) => (
   <span style={{ display:"inline-block", padding:"2px 10px", borderRadius:20, fontSize:11, fontWeight:600, background:bg, color:fg, whiteSpace:"nowrap" }}>{label}</span>
 );
 
-const Crd = ({ children, style }) => (
-  <div style={{ background:C.card, border:"1px solid "+C.border, borderRadius:12, padding:20, ...style }}>{children}</div>
+const Crd = ({ children, style, ...props }) => (
+  <div style={{ background:C.card, border:"1px solid "+C.border, borderRadius:12, padding:20, ...style }} {...props}>{children}</div>
 );
 
 const Spinner = () => (
