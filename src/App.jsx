@@ -237,7 +237,7 @@ export default function App() {
   const handleSubmitTicket = async (e) => {
     e.preventDefault(); setSubmitting(true);
     try {
-      const res = await submitTicket({ title: newTitle, description: newDesc, category: newCat || undefined });
+      const res = await submitTicket({ title: "", description: newDesc, category: newCat || undefined });
       if (res.error) { showError(res.error); setSubmitting(false); return; }
       setNewTitle(""); setNewDesc(""); setNewCat("");
       setPage("tickets");
@@ -419,7 +419,7 @@ export default function App() {
                     </div>
                   </div>
                   {ticketDetail.description && <div style={{ fontSize:13, color:C.t2, marginBottom:16, lineHeight:1.7, whiteSpace:"pre-wrap" }}>{ticketDetail.description}</div>}
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, fontSize:13 }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, fontSize:13, marginBottom:16 }}>
                     {[["Category", ticketDetail.category], ["Classification", ticketDetail.classification || "\u2014"], ["Assigned to", ticketDetail.assignee || "Unassigned"]].map(([k,v]) => (
                       <div key={k} style={{ padding:"8px 12px", background:C.bg, borderRadius:8 }}>
                         <div style={{ fontSize:11, color:C.t3, fontWeight:500, marginBottom:2 }}>{k}</div>
@@ -427,6 +427,42 @@ export default function App() {
                       </div>
                     ))}
                   </div>
+                  {/* SLA Info */}
+                  {(()=>{
+                    const slaMap = {"P1 - Critical":{resp:"15 min",resolve:"4 hrs"},"P2 - High":{resp:"30 min",resolve:"8 hrs"},"P3 - Medium":{resp:"2 hrs",resolve:"24 hrs"},"P4 - Low":{resp:"4 hrs",resolve:"48 hrs"}};
+                    const sla = slaMap[ticketDetail.priority] || slaMap["P3 - Medium"];
+                    const created = new Date(ticketDetail.created_at);
+                    const resolveHrs = parseInt(sla.resolve);
+                    const deadline = new Date(created.getTime() + resolveHrs * 3600000);
+                    const now = new Date();
+                    const remaining = deadline - now;
+                    const hoursLeft = Math.max(0, Math.floor(remaining / 3600000));
+                    const minsLeft = Math.max(0, Math.floor((remaining % 3600000) / 60000));
+                    const overdue = remaining <= 0 && !["Resolved","Closed"].includes(ticketDetail.status);
+                    const resolved = ["Resolved","Closed"].includes(ticketDetail.status);
+                    return (
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, fontSize:13 }}>
+                        <div style={{ padding:"8px 12px", background:C.bg, borderRadius:8 }}>
+                          <div style={{ fontSize:11, color:C.t3, fontWeight:500, marginBottom:2 }}>Created</div>
+                          <div style={{ fontWeight:500 }}>{created.toLocaleString(undefined,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>
+                        </div>
+                        <div style={{ padding:"8px 12px", background:C.bg, borderRadius:8 }}>
+                          <div style={{ fontSize:11, color:C.t3, fontWeight:500, marginBottom:2 }}>Response SLA</div>
+                          <div style={{ fontWeight:500 }}>{sla.resp}</div>
+                        </div>
+                        <div style={{ padding:"8px 12px", background:C.bg, borderRadius:8 }}>
+                          <div style={{ fontSize:11, color:C.t3, fontWeight:500, marginBottom:2 }}>Resolution SLA</div>
+                          <div style={{ fontWeight:500 }}>{sla.resolve}</div>
+                        </div>
+                        <div style={{ padding:"8px 12px", background:overdue?"#FEF2F2":resolved?"#F0FDF4":C.bg, borderRadius:8 }}>
+                          <div style={{ fontSize:11, color:C.t3, fontWeight:500, marginBottom:2 }}>Time Remaining</div>
+                          <div style={{ fontWeight:600, color:overdue?"#DC2626":resolved?"#16A34A":hoursLeft<2?"#D97706":C.navy }}>
+                            {resolved ? "Resolved" : overdue ? "Overdue" : hoursLeft+"h "+minsLeft+"m"}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </Crd>
 
                 {/* Notes timeline */}
@@ -462,13 +498,11 @@ export default function App() {
         {page === "submit" && (
           <div>
             <div style={{ fontSize:18, fontWeight:700, color:C.navy, marginBottom:4 }}>Submit a Ticket</div>
-            <div style={{ fontSize:13, color:C.t2, marginBottom:20 }}>Describe your issue and our team will get back to you. AI will automatically classify your request.</div>
+            <div style={{ fontSize:13, color:C.t2, marginBottom:20 }}>Tell us what's wrong in plain English. AI will classify your request and generate a title automatically.</div>
             <Crd>
               <form onSubmit={handleSubmitTicket}>
-                <label style={{ display:"block", fontSize:12, fontWeight:500, color:C.t2, marginBottom:4 }}>Title</label>
-                <input required value={newTitle} onChange={e=>setNewTitle(e.target.value)} placeholder="Brief summary of your issue" style={{ marginBottom:12 }}/>
-                <label style={{ display:"block", fontSize:12, fontWeight:500, color:C.t2, marginBottom:4 }}>Description</label>
-                <textarea required value={newDesc} onChange={e=>setNewDesc(e.target.value)} placeholder="Provide details about the issue: what happened, when it started, any error messages..." style={{ marginBottom:12, minHeight:120 }}/>
+                <label style={{ display:"block", fontSize:12, fontWeight:500, color:C.t2, marginBottom:4 }}>What's the issue?</label>
+                <textarea required value={newDesc} onChange={e=>setNewDesc(e.target.value)} placeholder="Describe your issue in plain English: what happened, when it started, any error messages you're seeing..." style={{ marginBottom:12, minHeight:150 }}/>
                 <label style={{ display:"block", fontSize:12, fontWeight:500, color:C.t2, marginBottom:4 }}>Category (optional &mdash; AI will auto-assign if left blank)</label>
                 <select value={newCat} onChange={e=>setNewCat(e.target.value)} style={{ marginBottom:16 }}>
                   <option value="">Let AI decide</option>
