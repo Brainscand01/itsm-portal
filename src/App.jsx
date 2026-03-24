@@ -380,7 +380,7 @@ export default function App() {
             ) : (
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {tickets.map(t => (
-                  <Crd key={t.id} style={{ cursor:"pointer", transition:"box-shadow 0.15s" }} onClick={()=>setSelTicket(t.id)}>
+                  <Crd key={t.id} style={{ cursor:"pointer", transition:"box-shadow 0.15s" }} onClick={()=>{setSelTicket(t.id);loadTicketDetail(t.id);}}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                       <div>
                         <div style={{ fontSize:12, color:C.orange, fontWeight:600, marginBottom:4 }}>{t.id}</div>
