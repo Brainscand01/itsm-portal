@@ -1,7 +1,7 @@
 // ── Portal API Service Layer ────────────────────────────────
 import { getToken } from "./auth";
 
-const BASE_URL = "https://itsmbackend.vercel.app";
+const BASE_URL = "https://itsm-backend-delta.vercel.app";
 
 function headers() {
   const h = { "Content-Type": "application/json" };
